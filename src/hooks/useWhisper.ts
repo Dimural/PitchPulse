@@ -1,11 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import mitt from 'mitt'
-import { eventBus } from '../utils/eventBus'
 
 const eventBus = mitt()
 
 // Simple filler word detection
-const FILLER_WORDS = ['um', 'uh', 'like', 'you know', 'sort of', 'kind of']
+const FILLER_WORDS = ['um', 'uh', 'like', 'you know', 'so', 'basically', 'actually']
 
 export const useWhisper = () => {
   const [isRecording, setIsRecording] = useState(false)
@@ -14,9 +13,6 @@ export const useWhisper = () => {
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null)
   const [error, setError] = useState<Error | null>(null)
-  const [transcript, setTranscript] = useState('')
-  const [wordCount, setWordCount] = useState(0)
-  const [fillerCount, setFillerCount] = useState(0)
   
   // Track words in a list
   const spokenWords = useRef<string[]>([])
@@ -42,22 +38,29 @@ export const useWhisper = () => {
       recognition.lang = 'en-US'
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const current = event.resultIndex
-        const transcript = event.results[current][0].transcript
-        setTranscript(transcript)
-
-        // Count words and filler words
-        const words = transcript.toLowerCase().split(/\s+/)
-        setWordCount(words.length)
-        
-        const fillers = words.filter(word => FILLER_WORDS.includes(word))
-        setFillerCount(fillers.length)
-
-        // Emit metrics
-        eventBus.emit('metrics', {
-          wordCount: words.length,
-          fillerCount: fillers.length
-        })
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const transcript = event.results[i][0].transcript
+            // Add words to our list as soon as they appear in the transcript
+            const words = transcript.split(/\s+/).filter(word => word.length > 0)
+            console.log('New transcript:', transcript)
+            console.log('Words extracted:', words)
+            spokenWords.current.push(...words)
+            console.log('Current word list:', spokenWords.current)
+            console.log('Total words so far:', spokenWords.current.length)
+            
+            // Emit metrics update with current word count
+            const lastMetrics = (window as any).lastMetrics || { gazeOnPct: 0, avgWPM: 0, totalWords: 0 }
+            const newMetrics = {
+              ...lastMetrics,
+              totalWords: spokenWords.current.length
+            }
+            ;(window as any).lastMetrics = newMetrics
+            window.dispatchEvent(new CustomEvent('metrics', {
+              detail: newMetrics
+            }))
+          }
+        }
       }
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -186,9 +189,7 @@ export const useWhisper = () => {
     isRecording,
     startRecording,
     stopRecording,
-    wordCount,
-    fillerCount,
-    transcript,
+    wordCount: spokenWords.current.length,
     audioUrl: audioUrlRef.current,
     audioBlob: audioBlobRef.current,
     error: error

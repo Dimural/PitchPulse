@@ -1,25 +1,24 @@
-import { FC } from 'react';
-import { SessionMetrics } from '../types';
+import React from 'react'
 
-interface StatsPanelProps {
-  metrics: SessionMetrics;
+interface Props {
+  metrics: { gazeOnPct: number }
+  isRecording: boolean
 }
 
-export const StatsPanel: FC<StatsPanelProps> = ({ metrics }) => {
+export const StatsPanel = ({ metrics, isRecording }: Props) => {
   return (
-    <div className="stats-panel">
-      <div className="stat">
-        <h3>Words per Minute</h3>
-        <p>{metrics.wpm.toFixed(1)}</p>
-      </div>
-      <div className="stat">
-        <h3>Eye Contact</h3>
-        <p>{metrics.gazeOnPct.toFixed(1)}%</p>
-      </div>
-      <div className="stat">
-        <h3>Confidence</h3>
-        <p>{metrics.confidence.toFixed(1)}%</p>
+    <div className="bg-base-100 rounded-lg p-6 shadow-lg">
+      <h2 className="text-xl font-semibold mb-4">Live Metrics</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="stat bg-base-200 rounded-lg">
+          <div className="stat-title">Speaking</div>
+          <div className="stat-value text-primary">{isRecording ? 'Active' : 'Inactive'}</div>
+        </div>
+        <div className="stat bg-base-200 rounded-lg">
+          <div className="stat-title">Gaze Focus</div>
+          <div className="stat-value text-secondary">{metrics.gazeOnPct}%</div>
+        </div>
       </div>
     </div>
-  );
-}; 
+  )
+} 
