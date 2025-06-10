@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --border-cue-width: 3px;
+}
+
+body {
+  @apply bg-base-100 text-base-content min-h-screen;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  @apply min-h-screen flex flex-col;
+}
+
+/* Custom border cue styles */
+.border-cue {
+  @apply fixed inset-0 pointer-events-none;
+  border: var(--border-cue-width) solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.border-cue.good {
+  border-color: theme('colors.green.500');
+}
+
+.border-cue.warning {
+  border-color: theme('colors.orange.500');
+}
+
+.border-cue.critical {
+  border-color: theme('colors.red.500');
+}
+
+/* Debug styles - remove in production */
+.debug-outline {
+  outline: 1px solid red;
+} 
